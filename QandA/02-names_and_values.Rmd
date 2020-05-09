@@ -282,7 +282,7 @@ new_y_address == y_address
 
 :::question
 
-Can we break down this code a bit more? I'd like to really understand when and how it's copying three times.
+Can we break down this code a bit more? I'd like to really understand when and how it's copying three times. **As of R 4.0 it's now copied twice, the 3rd copy that's external to the function is now eliminated!!**
 
 ```{r}
 # dataframe of 5 columns of numbers
@@ -452,4 +452,4 @@ nrows <- .row_names_info(x, 2L)
 }
 ```
 
-Thus seeing exactly where the three copies are happening!
+Thus seeing exactly where the three **as of R 4.0: two!** copies are happening.

@@ -223,11 +223,20 @@ Error in mylist[[10]] : subscript out of bounds
 Can we put these concepts together in diagram form? Let's work on improving these schematics!
 :::
 
+Let's first put functions into words:
+
+
+* If condition then run code, else quit
+* A vectorized version of: if condition then run code, else run other code
+* For every element in list of elements do what is in between the curly braces
+* While this condition is true do this
+* Repeat this until something tells you to break out
+
 ```{r, echo=FALSE}
 knitr::include_graphics("images/controlflow.png")
 ```
 
-It is also important to note that unlike the other control flow statements, `ifelse` is vectorized -- we can visualize the `ifelse` logic above operating on each element within a vector:
+We can visualize how the `ifelse` logic on a single element above will operate on each element within a vector:
 
 ```{r, echo=FALSE, fig.align='center'  }
 knitr::include_graphics("images/ifelse.png")
@@ -285,3 +294,109 @@ ifelse(c(TRUE, FALSE, TRUE, FALSE, TRUE, TRUE), 1:10, "FALSE")
 ```
 
 we can see that ifelse places the numbers in `1:10` based on their index where our condition is to `TRUE` and inserts the string `"FALSE"` whenever the condition is `FALSE`
+
+## Complexity {-}
+
+Cyclomatic complexity is a software metric used to indicate the complexity of a program. It is computed using the control flow graph of the program: the nodes of the graph correspond to indivisible groups of commands of a program, and a directed edge connects two nodes if the second command might be executed immediately after the first command. 
+
+We can use the package `cyclocomp` to look at the cyclomatic complexity of functions. Looking at each function from the Chapter 5 presentation:
+
+```{r, echo=FALSE}
+library(cyclocomp)
+
+if_func <- function(x) {
+  if (sample(beer_states$state, 1) == "NV") print("My Home State")
+}
+
+if_else_func <- function(x) {
+  if (sample(beer_states$state, 1) == "NV") print("My Home State") else print("Not my home")
+}
+
+ifelse_func <- function(x) {
+  ifelse((sample(beer_states$state, 1) == "NV"), print("My Home State"), print("Not my home"))
+}
+
+casewhen_func <- function(x) {
+  dplyr::case_when(
+  barrels >= 100000000 ~ "A LOT!",
+  barrels >= 10000000 ~ "Many",
+  barrels >= 1000000 ~ "A few",
+  TRUE ~ "Not much"
+)
+}
+
+switch_func <- function(x) {
+  switch(x,
+         "materials" = brewing_materials,
+         "size" = brewer_size,
+         "states" = beer_states,
+         "taxed" = beer_taxed)
+}
+
+for_func <- function(x) {
+  for (i in 1:nrow(beer_states)) { #<<
+  if (beer_states$state[i] %in% Region1) {
+    beer_states$region[i] <- "Region 1"
+  } else if (beer_states$state[i] %in% Region2) {
+    beer_states$region[i] <- "Region 2"
+  } else if (beer_states$state[i] %in% Region3) {
+    beer_states$region[i] <- "Region 3"
+  } else if (beer_states$state[i] %in% Region4) {
+    beer_states$region[i] <- "Region 4"
+  } else if (beer_states$state[i] %in% Region5) {
+    beer_states$region[i] <- "Region 5"
+  } else if (beer_states$state[i] %in% Region6) {
+    beer_states$region[i] <- "Region 6"
+  } else if (beer_states$state[i] %in% Region7) {
+    beer_states$region[i] <- "Region 7"
+  } else if (beer_states$state[i] %in% Region8) {
+    beer_states$region[i] <- "Region 8"
+  } else if (beer_states$state[i] %in% Region9) {
+    beer_states$region[i] <- "Region 9"
+  } else if (beer_states$state[i] %in% Region10) {
+    beer_states$region[i] <- "Region 10"
+  } else {
+    beer_states$region[i] <- "Missing"
+  }
+  }
+}
+
+while_func <- function(x) {
+  i <- 0
+  my_vector <- vector()
+  while (i <= input$xqty) {
+    my_vector[i] <- i
+    i = i+1
+  }
+  return(my_vector)
+}
+
+repeat_func <- function(x) {
+  repeat {   
+    if (sample(beer_states$state, 1) == "NV") {
+      print("Go grab a beer!");
+      break
+    } else print("Maya doesn't live here");
+  }
+}
+```
+
+```{r}
+controlflow_functions <- list(
+  if_func = if_func,
+  if_else_func = if_else_func,
+  ifelse_func = ifelse_func,
+  casewhen_func = casewhen_func,
+  switch_func = switch_func, 
+  for_func = for_func,
+  while_func = while_func,
+  repeat_func = repeat_func)
+
+purrr::map_df(controlflow_functions, cyclocomp)
+```
+
+We see that the `for` loop was our most complex function and `while` had a complexity of 3. The rest of our functions had a complexity of `1`. 
+
+As [Colin Fay states](https://engineering-shiny.org/successfulshinyapp.html): 
+
+"Splitting a complex function into smaller functions is not a magic solution because (A) the global complexity of the app is not lowered by splitting things into pieces (just local complexity), and (B) the deeper the call stack, the harder it can be to debug."
